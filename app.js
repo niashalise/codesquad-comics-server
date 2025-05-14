@@ -16,6 +16,7 @@ const helmet = require("helmet");
 // Require the following module after the dependencies: path
 const path = require("node:path");
 const bookRoutes = require("./routes/bookRoutes");
+const authRoutes = require("./routes/authRoutes")
 
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
@@ -28,6 +29,7 @@ app.use(cors());
 app.use(morgan("dev"));
 
 app.use("/api/books/", bookRoutes);
+app.use("/api/auth/", authRoutes);
 
 // Create six basic GET routes with the following information using the .send() method and the request/response/next parameter
 
