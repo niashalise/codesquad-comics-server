@@ -1,11 +1,14 @@
 // require express
+require("dotenv").config();
+require("./config/connection");
 const express = require("express");
+
 
 // create const variable called app with the value express()
 const app = express();
 
 // Create a const variable called PORT with the value of 8080
-const PORT = 8080;
+const PORT = process.env.PORT || "8080";
 
 // Require the following dependencies: morgan, helmet and cors
 // -----------------------MIDDLEWARE--------------------------
@@ -14,7 +17,7 @@ const morgan = require("morgan");
 const helmet = require("helmet");
 
 // Require the following module after the dependencies: path
-const path = require("node:path");
+const path = require("path");
 const bookRoutes = require("./routes/bookRoutes");
 const authRoutes = require("./routes/authRoutes")
 
@@ -28,10 +31,8 @@ app.use(express.static(path.join(__dirname + "/public")))
 app.use(cors());
 app.use(morgan("dev"));
 
-app.use("/api/books/", bookRoutes);
+app.use("/api/books/", bookRoutes); // http://localhost:8080/api/books/
 app.use("/api/auth/", authRoutes);
-
-// Create six basic GET routes with the following information using the .send() method and the request/response/next parameter
 
 // PATH: /, HANDLER: "This route points to the Home page
 app.get("/", (req, res, next) => {
@@ -41,9 +42,6 @@ app.get("/", (req, res, next) => {
     statusCode: 200,
   });
 });
-
-
-
 
 // use app.listen() to start the server and send a console.log to the terminal with a start message that says `The server is listening on port ${PORT}`
 
