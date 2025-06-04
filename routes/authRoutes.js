@@ -13,13 +13,19 @@ router.get("/login", login);
 router.post("/logout", logout);
 router.post("/locallogin", localLogin);
 router.get("/unauthenticated", (req, res, next) => {
-    console.log("Returning to the homepage...");
-    res.redirect("/");
+  console.log("Returning to the homepage...");
+  res.redirect("/");
 });
-router.get("/login/google", passport.authenticate("google", { scope: ["profile", "email"]}));
-router.get("/google/callback", passport.authenticate("google", {
-  failureRedirect: "/login",
-  successRedirect: "/dashboard"
-}))
+router.get(
+  "/login/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "/login",
+    successRedirect: "/dashboard",
+  })
+);
 
 module.exports = router;

@@ -1,15 +1,14 @@
 const passport = require("passport");
 const bcrypt = require("bcrypt");
 
-const User = require("../models/userModel")
+const User = require("../models/userModel");
 
 const register = async (req, res, next) => {
   const { firstName, lastName, username, password, googleId } = req.body;
 
-  
   if (!firstName || !lastName || !username || !password || !googleId) {
-    console.error("Please fill in required fields.")
-  };
+    console.error("Please fill in required fields.");
+  }
 
   try {
     const hashPassword = await bcrypt.hash(password, 10);
@@ -19,25 +18,24 @@ const register = async (req, res, next) => {
       lastName,
       username,
       password: hashPassword,
-      googleId
+      googleId,
     });
 
     await newUser.save();
 
     req.login(user, (err) => {
       if (err) {
-        return next(err)
+        return next(err);
       }
 
       newUser.password = undefined;
-    })
+    });
 
     return res.status(201).json({
       success: { message: "User created." },
       data: { user: newUser },
-      statusCode: 201
-    })
-  
+      statusCode: 201,
+    });
   } catch (error) {
     return res.status(500).json({
       error: { message: "Internal server error!" },
@@ -67,20 +65,19 @@ const localLogin = async (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (!user) {
       return res.status(401).json({
-        error: { message: info.message}
-      })
+        error: { message: info.message },
+      });
     }
 
     req.login(user, (err) => {
       if (err) {
-        return next(err)
+        return next(err);
       }
 
-      const userCopy = { ...req.user._doc};
+      const userCopy = { ...req.user._doc };
       userCopy.password = undefined;
-    })
-
-  })
+    });
+  });
 
   return res.status(200).json({
     success: { message: "Successful login." },
@@ -93,14 +90,14 @@ const localLogin = async (req, res, next) => {
 const logout = async (req, res, next) => {
   req.logout((err) => {
     if (err) {
-      next(err)
+      next(err);
     }
 
     res.clearCookie("connect.sid");
 
     res.status(200).json({
-      success: { message: "User logged out!"},
-      statusCode: 200
+      success: { message: "User logged out!" },
+      statusCode: 200,
     });
 
     function sessionDestruction(err) {
@@ -109,11 +106,9 @@ const logout = async (req, res, next) => {
       }
     }
     sessionDestruction();
-  })
+  });
 };
 
 // unauthenticated - GET where we'll send a console.log that says "Returning to the homepage..." and redirect the user back home to the index -get
 
-
-
-module.exports = { register, login, logout, localLogin };
+module.exports = { register, login, logout, localLogin, loginError };

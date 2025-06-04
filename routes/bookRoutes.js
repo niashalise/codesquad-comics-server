@@ -1,6 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { getAllBooks, getBook, createBook, updateBook, deleteBook } = require("../controllers/bookController") 
+const {
+  getAllBooks,
+  getBook,
+  createBook,
+  updateBook,
+  deleteBook,
+} = require("../controllers/bookController");
 
 router.get("/all", getAllBooks);
 
@@ -8,7 +14,6 @@ router.get("/:id", getBook);
 
 // PATH: /create/new, HANDLER: "This will create a new book"
 router.post("/create/new", createBook);
-
 
 // PATH: /update/:id, HANDLER: "This will update a book by its id"
 router.put("/edit/:id", updateBook);
