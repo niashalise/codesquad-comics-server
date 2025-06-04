@@ -1,27 +1,43 @@
-// register - POST
+const passport = require("passport");
+const bcrypt = require("bcrypt");
+
+const User = require("../models/userModel")
+
 const register = async (req, res, next) => {
-  const { firstName, lastName, username, password } = req.body;
-  console.log(
-    "First name, Last name, Username, and Password",
-    firstName,
-    lastName,
-    username,
-    password
-  );
+  const { firstName, lastName, username, password, googleId } = req.body;
+
+  
+  if (!firstName || !lastName || !username || !password || !googleId) {
+    console.error("Please fill in required fields.")
+  };
 
   try {
-    const newUser = {
+    const hashPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
       firstName,
       lastName,
       username,
-      password,
-    };
-    console.log("New user: ", newUser);
-    return res.status(201).json({
-      success: { message: "Registered successfully. New user created." },
-      data: newUser,
-      statusCode: 201,
+      password: hashPassword,
+      googleId
     });
+
+    await newUser.save();
+
+    req.login(user, (err) => {
+      if (err) {
+        return next(err)
+      }
+
+      newUser.password = undefined;
+    })
+
+    return res.status(201).json({
+      success: { message: "User created." },
+      data: { user: newUser },
+      statusCode: 201
+    })
+  
   } catch (error) {
     return res.status(500).json({
       error: { message: "Internal server error!" },
@@ -48,39 +64,52 @@ const loginError = async (req, res, next) => {
 // login/local - GET
 
 const localLogin = async (req, res, next) => {
-  let result = true;
-
-  function mockPassport(err, user) {
-    //error handling as a final check and a failsafe
-    if (err) {
-      return next(err);
+  passport.authenticate("local", (err, user, info) => {
+    if (!user) {
+      return res.status(401).json({
+        error: { message: info.message}
+      })
     }
-  }
-  //call the mockPassport feature
-  mockPassport();
 
-  res.status(200).json({
-    success: { message: "Login successful." },
-    result: result
+    req.login(user, (err) => {
+      if (err) {
+        return next(err)
+      }
+
+      const userCopy = { ...req.user._doc};
+      userCopy.password = undefined;
+    })
+
   })
+
+  return res.status(200).json({
+    success: { message: "Successful login." },
+    data: { user: userCopy },
+    statusCode: 200,
+  });
 };
 
 // logout - GET
 const logout = async (req, res, next) => {
-  console.log("Initializing logout controller logic...");
-  res.clearCookie("connect.sid");
-  res.status(200).json({
-    success: { message: "User logging out." },
-    statusCode: 200,
-  });
-  function sessionDestruction(err) {
-    //error handling as a final check and a failsafe
+  req.logout((err) => {
     if (err) {
-      return next(err);
+      next(err)
     }
-  }
-  sessionDestruction();
-  console.log("Logout function activated. Logging out...");
+
+    res.clearCookie("connect.sid");
+
+    res.status(200).json({
+      success: { message: "User logged out!"},
+      statusCode: 200
+    });
+
+    function sessionDestruction(err) {
+      if (err) {
+        return next(err);
+      }
+    }
+    sessionDestruction();
+  })
 };
 
 // unauthenticated - GET where we'll send a console.log that says "Returning to the homepage..." and redirect the user back home to the index -get
