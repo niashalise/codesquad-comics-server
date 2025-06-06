@@ -9,7 +9,7 @@ const getAllBooks = async (req, res, next) => {
       data: books,
     });
   } catch (error) {
-    return res.status(400).next(error);
+    return next(error);
   }
 };
 
@@ -45,7 +45,7 @@ const createBook = async (req, res, next) => {
       throw new Error("Missing required information.");
     }
 
-    const newBook = {
+    const newBook = new Book({
       title,
       author,
       publisher,
@@ -54,16 +54,16 @@ const createBook = async (req, res, next) => {
       rating,
       synopsis,
       image,
-    };
+    });
 
-    newBook.save();
+    await newBook.save();
 
     res.status(201).json({
       success: { message: "A new book was created." },
       data: newBook,
     });
   } catch (error) {
-    res.status(400).next(error);
+    return next(error);
   }
 };
 
@@ -77,9 +77,13 @@ const updateBook = async (req, res, next) => {
       throw new Error("Missing required information.");
     }
 
-    const updatedBook = await Book.findByIdAndUpdate(_id, $set(), {
-      new: true,
-    });
+    const updatedBook = await Book.findByIdAndUpdate(
+      _id,
+      { $set: { title, author, publisher, genre, rating, synopsis } },
+      {
+        new: true,
+      }
+    );
 
     if (!updatedBook) {
       throw new Error("Book not found.");
@@ -90,26 +94,26 @@ const updateBook = async (req, res, next) => {
       data: updatedBook,
     });
   } catch (error) {
-    return res.status(400).next(error);
+    return next(error);
   }
 };
 
 const deleteBook = async (req, res, next) => {
   const { _id } = req.params;
 
-  if (!_id) {
-    throw new Error("Id is required.");
-  }
-
   try {
-    const foundBook = Book.findByIdAndDelete(_id);
+    if (!_id) {
+      throw new Error("Id is required.");
+    }
+
+    const foundBook = await Book.findByIdAndDelete(_id);
 
     return res.status(200).json({
       success: { message: "Book successfully deleted." },
       data: foundBook,
     });
   } catch (error) {
-    return res.status(400).next(error);
+    return next(error);
   }
 };
 
